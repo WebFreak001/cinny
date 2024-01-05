@@ -74,7 +74,7 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
       };
 
       const imgUrl = prev['og:image'];
-      const dim = scaleDimension(imgInfo?.w || 400, imgInfo?.h || 400, 400, 24, 600, 24);
+      const dim = scaleDimension(imgInfo?.w || 400, imgInfo?.h || 400, 24, 24, 400, 600);
 
       return (
         <>

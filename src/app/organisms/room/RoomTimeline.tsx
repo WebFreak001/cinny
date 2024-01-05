@@ -1241,7 +1241,7 @@ export function RoomTimeline({ room, eventId, roomInputRef, editor }: RoomTimeli
       }
       return (
         <Text>
-          <MessageUnsupportedContent />
+          <MessageUnsupportedContent reason={"unknown content type: " + mEvent.getContent().msgtype} />
         </Text>
       );
     },
@@ -1392,7 +1392,7 @@ export function RoomTimeline({ room, eventId, roomInputRef, editor }: RoomTimeli
                 );
               return (
                 <Text>
-                  <MessageUnsupportedContent />
+                  <MessageUnsupportedContent reason={"unknown event type: " + mEvent.getType()} />
                 </Text>
               );
             }}

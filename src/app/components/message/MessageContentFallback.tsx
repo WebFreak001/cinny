@@ -17,10 +17,10 @@ export const MessageDeletedContent = as<'div', { children?: never; reason?: stri
   )
 );
 
-export const MessageUnsupportedContent = as<'div', { children?: never }>(({ ...props }, ref) => (
+export const MessageUnsupportedContent = as<'div', { children?: never, reason?: string }>(({ ...props }, ref) => (
   <Box as="span" alignItems="Center" gap="100" style={criticalStyle} {...props} ref={ref}>
     <Icon size="50" src={Icons.Warning} />
-    <i>Unsupported message</i>
+    <i>Unsupported message{props.reason ? " - " + props.reason : ""}</i>
   </Box>
 ));
 

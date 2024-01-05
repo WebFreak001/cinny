@@ -40,7 +40,7 @@ export type VideoContentProps = {
   videoHeight?: number;
 };
 export const VideoContent = as<'div', VideoContentProps>(
-  ({ className, body, mimeType, url, info, encInfo, autoPlay, loadThumbnail, ...props }, ref) => {
+  ({ className, body, mimeType, url, info, encInfo, autoPlay, loadThumbnail, videoWidth, videoHeight, ...props }, ref) => {
     const mx = useMatrixClient();
     const blurHash = info.thumbnail_info?.[MATRIX_BLUR_HASH_PROPERTY_NAME];
 

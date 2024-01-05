@@ -41,7 +41,7 @@ export type ImageContentProps = {
   imageHeight?: number;
 };
 export const ImageContent = as<'div', ImageContentProps>(
-  ({ className, body, mimeType, url, info, encInfo, autoPlay, ...props }, ref) => {
+  ({ className, body, mimeType, url, info, encInfo, autoPlay, imageWidth, imageHeight, ...props }, ref) => {
     const mx = useMatrixClient();
     const blurHash = info?.[MATRIX_BLUR_HASH_PROPERTY_NAME];
 

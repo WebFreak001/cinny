@@ -81,7 +81,9 @@ function Client() {
       initRoomListListener(initMatrix.roomList);
       changeLoading(false);
     });
-    initMatrix.init();
+    initMatrix.init().catch((e) => {
+      console.error("Failed initializing matrix: ", e);
+    });
   }, []);
 
   if (isLoading) {

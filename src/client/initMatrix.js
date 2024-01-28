@@ -3,7 +3,7 @@ import * as sdk from 'matrix-js-sdk';
 import Olm from '@matrix-org/olm';
 // import { logger } from 'matrix-js-sdk/lib/logger';
 
-import { secret } from './state/auth';
+import { getSecret } from './state/auth';
 import RoomList from './state/RoomList';
 import AccountData from './state/AccountData';
 import RoomsInput from './state/RoomsInput';
@@ -39,6 +39,8 @@ class InitMatrix extends EventEmitter {
       localStorage: global.localStorage,
       dbName: 'web-sync-store',
     });
+
+    const secret = getSecret();
 
     this.matrixClient = sdk.createClient({
       baseUrl: secret.baseUrl,

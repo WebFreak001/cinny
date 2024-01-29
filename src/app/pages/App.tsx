@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Provider as JotaiProvider } from 'jotai';
 import {
   Route,
@@ -7,6 +7,7 @@ import {
   createHashRouter,
   createRoutesFromElements,
   redirect,
+  useLoaderData,
 } from 'react-router-dom';
 
 import { ClientConfigLoader } from '../components/ClientConfigLoader';
@@ -18,12 +19,17 @@ import Client from '../templates/client/Client';
 import { getLoginPath } from './pathUtils';
 import { ConfigConfigError, ConfigConfigLoading } from './ConfigConfig';
 import { FeatureCheck } from './FeatureCheck';
+import Welcome from '../organisms/welcome/Welcome';
+import { RoomBaseView } from '../organisms/room/Room';
+import ErrorPage from './Error';
+import { Loading } from '../templates/client/Loading';
+import initMatrix from '../../client/initMatrix';
 
 const createRouter = (clientConfig: ClientConfig) => {
   const { hashRouter } = clientConfig;
 
   const routes = createRoutesFromElements(
-    <Route>
+    <Route errorElement={<ErrorPage />}>
       <Route
         path={ROOT_PATH}
         loader={() => {
@@ -38,17 +44,51 @@ const createRouter = (clientConfig: ClientConfig) => {
       </Route>
 
       <Route
+        path="/"
         loader={() => {
           if (!isAuthenticated()) return redirect(getLoginPath());
           return null;
         }}
+        element={<Suspense fallback={<Loading />}>
+            <Client />
+          </Suspense>}
+        errorElement={<ErrorPage />}
       >
-        <Route path="/home" element={<Client />} />
-        <Route path="/direct" element={<p>direct</p>} />
-        <Route path="/:spaceIdOrAlias" element={<p>:spaceIdOrAlias</p>} />
-        <Route path="/explore" element={<p>explore</p>} />
+        <Route path="home" element={<Welcome />} />
+        <Route
+          path=":rId"
+          loader={async ({ params }) => {
+            const mx = await initMatrix.initAndLoad();
+
+            let rId = params.rId;
+            const r = mx.getRoom(rId);
+            if (!r)
+              return redirect('/home');
+            return {
+              room: r,
+              eventId: null
+            };
+          }}
+          element={<RoomBaseView />} />
+        <Route
+          path=":rId/:eventId"
+          loader={async ({ params }) => {
+            const mx = await initMatrix.initAndLoad();
+
+            let rId = params.rId;
+            let eventId = params.eventId;
+            const r = mx.getRoom(rId);
+            if (!r)
+              return redirect('/home');
+            return {
+              room: r,
+              eventId: eventId ?? null
+            };
+          }}
+          element={<RoomBaseView />} />
+        {/* <Route path="/direct" element={<p>direct</p>} />
+        <Route path="/explore" element={<p>explore</p>} /> */}
       </Route>
-      <Route path="/*" element={<p>Page not found</p>} />
     </Route>
   );
 

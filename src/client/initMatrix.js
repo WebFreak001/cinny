@@ -19,6 +19,7 @@ class InitMatrix extends EventEmitter {
   constructor() {
     super();
 
+    this.singletonLoader = null;
     navigation.initMatrix = this;
   }
 
@@ -31,6 +32,24 @@ class InitMatrix extends EventEmitter {
     await this.startClient();
     this.setupSync();
     this.listenEvents();
+  }
+
+  initAndLoad() {
+    if (this.singletonLoader)
+      return this.singletonLoader;
+    return this.singletonLoader = this._initAndLoadImpl();
+  }
+
+  async _initAndLoadImpl() {
+    console.log("initAndLoad");
+    let loadFinish = new Promise((resolve) => {
+      this.once('init_loading_finished', () => {
+        resolve();
+      });
+    });
+    await this.init();
+    await loadFinish;
+    return this.matrixClient;
   }
 
   async startClient() {

@@ -14,12 +14,14 @@ import {
   roomIdToTypingMembersAtom,
   useBindRoomIdToTypingMembersAtom,
 } from '../../state/typingMembers';
+import { useLoaderData } from 'react-router-dom';
+export function RoomBaseView() {
+  const loaderData = useLoaderData() as any;
+  if (!loaderData)
+    return null; // matrixClient still loading
 
-export type RoomBaseViewProps = {
-  room: Room;
-  eventId?: string;
-};
-export function RoomBaseView({ room, eventId }: RoomBaseViewProps) {
+  const { room, eventId } = loaderData;
+
   useBindRoomIdToTypingMembersAtom(room.client, roomIdToTypingMembersAtom);
 
   const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');

@@ -1,3 +1,5 @@
+import classNames from 'classnames';
+import FocusTrap from 'focus-trap-react';
 import {
   Avatar,
   AvatarFallback,
@@ -24,6 +26,8 @@ import {
   color,
   config,
 } from 'folds';
+import { MatrixEvent, Room } from 'matrix-js-sdk';
+import { Relations } from 'matrix-js-sdk/lib/models/relations';
 import React, {
   FormEventHandler,
   MouseEventHandler,
@@ -31,11 +35,12 @@ import React, {
   useCallback,
   useState,
 } from 'react';
-import FocusTrap from 'focus-trap-react';
-import { useHover, useFocusWithin } from 'react-aria';
-import { MatrixEvent, Room } from 'matrix-js-sdk';
-import { Relations } from 'matrix-js-sdk/lib/models/relations';
-import classNames from 'classnames';
+import { useFocusWithin, useHover } from 'react-aria';
+import DiscordSVG from '../../../../../public/res/ic/filled/discord-mark-white.svg';
+import colorMXID from '../../../../util/colorMXID';
+import RawIcon from '../../../atoms/system-icons/RawIcon';
+import { EmojiBoard } from '../../../components/emoji-board';
+import { EventReaders } from '../../../components/event-readers';
 import {
   AvatarBase,
   BubbleLayout,
@@ -45,24 +50,21 @@ import {
   Time,
   Username,
 } from '../../../components/message';
-import colorMXID from '../../../../util/colorMXID';
+import { TextViewer } from '../../../components/text-viewer';
+import { AsyncStatus, useAsyncCallback } from '../../../hooks/useAsyncCallback';
+import { useMatrixClient } from '../../../hooks/useMatrixClient';
+import { useRecentEmoji } from '../../../hooks/useRecentEmoji';
+import { MessageLayout, MessageSpacing } from '../../../state/settings';
+import { getMxIdLocalPart } from '../../../utils/matrix';
 import {
   canEditEvent,
   getEventEdits,
   getMemberAvatarMxc,
   getMemberDisplayName,
 } from '../../../utils/room';
-import { getMxIdLocalPart } from '../../../utils/matrix';
-import { MessageLayout, MessageSpacing } from '../../../state/settings';
-import { useMatrixClient } from '../../../hooks/useMatrixClient';
-import { useRecentEmoji } from '../../../hooks/useRecentEmoji';
-import * as css from './styles.css';
-import { EventReaders } from '../../../components/event-readers';
-import { TextViewer } from '../../../components/text-viewer';
-import { AsyncStatus, useAsyncCallback } from '../../../hooks/useAsyncCallback';
-import { EmojiBoard } from '../../../components/emoji-board';
 import { ReactionViewer } from '../reaction-viewer';
 import { MessageEditor } from './MessageEditor';
+import * as css from './styles.css';
 
 export type ReactionHandler = (keyOrMxc: string, shortcode: string) => void;
 
@@ -635,6 +637,9 @@ export const Message = as<'div', MessageProps>(
           <Text as="span" size={messageLayout === 2 ? 'T300' : 'T400'} truncate>
             <b>{senderDisplayName}</b>
           </Text>
+          {(senderId.startsWith('@_discord_') || senderId.startsWith('@discord_')) && (
+            <RawIcon size="text" src={DiscordSVG} />
+          )}
         </Username>
         <Box shrink="No" gap="100">
           {messageLayout !== 1 && hover && (

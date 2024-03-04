@@ -1,5 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import './RawIcon.scss';
 
 function RawIcon({ color, size, src, isImage }) {
@@ -24,7 +24,7 @@ RawIcon.defaultProps = {
 
 RawIcon.propTypes = {
   color: PropTypes.string,
-  size: PropTypes.oneOf(['large', 'normal', 'small', 'extra-small']),
+  size: PropTypes.oneOf(['large', 'normal', 'small', 'extra-small', 'text']),
   src: PropTypes.string.isRequired,
   isImage: PropTypes.bool,
 };

@@ -62,3 +62,21 @@ export const DrawerVirtualItem = style({
   left: 0,
   width: '100%',
 });
+
+export const ExternalIcon = style({
+  position: 'absolute',
+  bottom: '-4px',
+  marginLeft: '0.5em',
+  zIndex: 1,
+  padding: '0 2px',
+  backgroundColor: color.Background.Container,
+  borderRadius: '6px',
+  selectors: {
+    '&:hover': {
+      backgroundColor: color.Background.ContainerHover,
+    },
+    '&:active': {
+      backgroundColor: color.Background.ContainerActive,
+    },
+  },
+});

@@ -1,11 +1,6 @@
-import React, {
-  ChangeEventHandler,
-  MouseEventHandler,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import classNames from 'classnames';
+import FocusTrap from 'focus-trap-react';
 import {
   Avatar,
   AvatarFallback,
@@ -29,37 +24,51 @@ import {
   TooltipProvider,
   config,
 } from 'folds';
-import { Room, RoomMember } from 'matrix-js-sdk';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import FocusTrap from 'focus-trap-react';
-import millify from 'millify';
-import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
+import { Room, RoomMember } from 'matrix-js-sdk';
+import millify from 'millify';
+import React, {
+  ChangeEventHandler,
+  MouseEventHandler,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import DiscordSVG from '../../../../public/res/ic/filled/discord-mark-white.svg';
+import TelegramSVG from '../../../../public/res/ic/filled/telegram-mark.svg';
 
 import { openInviteUser, openProfileViewer } from '../../../client/action/navigation';
-import * as css from './MembersDrawer.css';
-import { useRoomMembers } from '../../hooks/useRoomMembers';
-import { useMatrixClient } from '../../hooks/useMatrixClient';
-import {
-  getIntersectionObserverEntry,
-  useIntersectionObserver,
-} from '../../hooks/useIntersectionObserver';
 import { Membership } from '../../../types/matrix/room';
+import colorMXID from '../../../util/colorMXID';
+import {
+  externalServicePart,
+  mightBeDiscord,
+  mightBeExternal,
+  mightBeTelegram,
+} from '../../../util/external';
+import RawIcon from '../../atoms/system-icons/RawIcon';
 import { UseStateProvider } from '../../components/UseStateProvider';
+import { TypingIndicator } from '../../components/typing-indicator';
 import {
   SearchItemStrGetter,
   UseAsyncSearchOptions,
   useAsyncSearch,
 } from '../../hooks/useAsyncSearch';
 import { useDebounce } from '../../hooks/useDebounce';
-import colorMXID from '../../../util/colorMXID';
-import { usePowerLevelTags, PowerLevelTag } from '../../hooks/usePowerLevelTags';
-import { roomIdToTypingMembersAtom, selectRoomTypingMembersAtom } from '../../state/typingMembers';
-import { TypingIndicator } from '../../components/typing-indicator';
-import { getMemberDisplayName, getMemberSearchStr } from '../../utils/room';
-import { getMxIdLocalPart } from '../../utils/matrix';
+import {
+  getIntersectionObserverEntry,
+  useIntersectionObserver,
+} from '../../hooks/useIntersectionObserver';
+import { useMatrixClient } from '../../hooks/useMatrixClient';
+import { PowerLevelTag, usePowerLevelTags } from '../../hooks/usePowerLevelTags';
+import { useRoomMembers } from '../../hooks/useRoomMembers';
 import { useSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
+import { roomIdToTypingMembersAtom, selectRoomTypingMembersAtom } from '../../state/typingMembers';
+import { getMxIdLocalPart } from '../../utils/matrix';
+import { getMemberDisplayName, getMemberSearchStr } from '../../utils/room';
+import * as css from './MembersDrawer.css';
 
 export const MembershipFilters = {
   filterJoined: (m: RoomMember) => m.membership === Membership.Join,
@@ -115,9 +124,21 @@ const useMembershipFilterMenu = (): MembershipFilter[] =>
 
 export const SortFilters = {
   filterAscending: (a: RoomMember, b: RoomMember) =>
-    a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1,
+    (
+      externalServicePart(a.userId) != externalServicePart(b.userId)
+        ? externalServicePart(a.userId) < externalServicePart(b.userId)
+        : a.name.toLowerCase() < b.name.toLowerCase()
+    )
+      ? -1
+      : 1,
   filterDescending: (a: RoomMember, b: RoomMember) =>
-    a.name.toLowerCase() > b.name.toLowerCase() ? -1 : 1,
+    (
+      externalServicePart(a.userId) != externalServicePart(b.userId)
+        ? externalServicePart(a.userId) < externalServicePart(b.userId)
+        : a.name.toLowerCase() > b.name.toLowerCase()
+    )
+      ? -1
+      : 1,
   filterNewestFirst: (a: RoomMember, b: RoomMember) =>
     (b.events.member?.getTs() ?? 0) - (a.events.member?.getTs() ?? 0),
   filterOldest: (a: RoomMember, b: RoomMember) =>
@@ -519,20 +540,32 @@ export function MembersDrawer({ room }: MembersDrawerProps) {
                       radii="400"
                       onClick={handleMemberClick}
                       before={
-                        <Avatar size="200">
-                          {avatarUrl ? (
-                            <AvatarImage src={avatarUrl} />
-                          ) : (
-                            <AvatarFallback
-                              style={{
-                                background: colorMXID(member.userId),
-                                color: 'white',
-                              }}
-                            >
-                              <Text size="H6">{name[0]}</Text>
-                            </AvatarFallback>
+                        <>
+                          <Avatar size="200">
+                            {avatarUrl ? (
+                              <AvatarImage src={avatarUrl} />
+                            ) : (
+                              <AvatarFallback
+                                style={{
+                                  background: colorMXID(member.userId),
+                                  color: 'white',
+                                }}
+                              >
+                                <Text size="H6">{name[0]}</Text>
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          {mightBeExternal(member.userId) && (
+                            <div className={css.ExternalIcon}>
+                              {mightBeDiscord(member.userId) && (
+                                <RawIcon size="text" src={DiscordSVG} />
+                              )}
+                              {mightBeTelegram(member.userId) && (
+                                <RawIcon size="text" src={TelegramSVG} />
+                              )}
+                            </div>
                           )}
-                        </Avatar>
+                        </>
                       }
                       after={
                         typingMembers.find((tm) => tm.userId === member.userId) && (

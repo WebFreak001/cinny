@@ -37,7 +37,9 @@ import React, {
 } from 'react';
 import { useFocusWithin, useHover } from 'react-aria';
 import DiscordSVG from '../../../../../public/res/ic/filled/discord-mark-white.svg';
+import TelegramSVG from '../../../../../public/res/ic/filled/telegram-mark.svg';
 import colorMXID from '../../../../util/colorMXID';
+import { mightBeDiscord, mightBeTelegram } from '../../../../util/external';
 import RawIcon from '../../../atoms/system-icons/RawIcon';
 import { EmojiBoard } from '../../../components/emoji-board';
 import { EventReaders } from '../../../components/event-readers';
@@ -637,9 +639,8 @@ export const Message = as<'div', MessageProps>(
           <Text as="span" size={messageLayout === 2 ? 'T300' : 'T400'} truncate>
             <b>{senderDisplayName}</b>
           </Text>
-          {(senderId.startsWith('@_discord_') || senderId.startsWith('@discord_')) && (
-            <RawIcon size="text" src={DiscordSVG} />
-          )}
+          {mightBeDiscord(senderId) && <RawIcon size="text" src={DiscordSVG} />}
+          {mightBeTelegram(senderId) && <RawIcon size="text" src={TelegramSVG} />}
         </Username>
         <Box shrink="No" gap="100">
           {messageLayout !== 1 && hover && (

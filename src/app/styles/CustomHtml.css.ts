@@ -171,8 +171,7 @@ export const EmoticonBase = style([
   DefaultReset,
   {
     display: 'inline-block',
-    height: '1em',
-    verticalAlign: 'middle',
+    height: 'var(--emoji-size, 22px)',
   },
 ]);
 
@@ -186,11 +185,11 @@ export const Emoticon = recipe({
 
       height: '1em',
       minWidth: '1em',
-      fontSize: '1.33em',
+      fontSize: 'var(--emoji-size, 22px)',
       lineHeight: '1em',
       verticalAlign: 'middle',
       position: 'relative',
-      top: '-0.35em',
+      top: '-3px',
       borderRadius: config.radii.R300,
     },
   ],

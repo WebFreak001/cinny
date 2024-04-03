@@ -27,7 +27,7 @@ import PopupWindow from '../../molecules/popup-window/PopupWindow';
 
 import CrossIC from '../../../../public/res/ic/outlined/cross.svg';
 
-const renderBody = (body, customBody) => {
+const renderBody = (body: string, customBody: string | undefined) => {
   if (body === '') <MessageEmptyContent />;
   if (customBody) {
     if (customBody === '') <MessageEmptyContent />;
@@ -36,13 +36,15 @@ const renderBody = (body, customBody) => {
   return emojifyAndLinkify(body, true);
 };
 
-function NotiList({ isOpen, onRequestClose }) {
-  const [notis, setNotis] = useState([]);
+function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose: (...args: any[]) => any }) {
+  const [notis, setNotis] = useState<any[]>([]);
   const [nextToken, setNextToken] = useState(null);
 
   const mx = initMatrix.matrixClient;
 
   useEffect(() => {
+    if (!mx) return;
+
     fetch(new URL('/_matrix/client/v3/notifications?limit=10', mx.getHomeserverUrl()), {
       headers: {
         Authorization: `Bearer ${mx.getAccessToken()}`,
@@ -64,6 +66,9 @@ function NotiList({ isOpen, onRequestClose }) {
         setNextToken(next_token);
       });
   }, [mx]);
+
+  if (!mx)
+    return undefined;
 
   return (
     <PopupWindow

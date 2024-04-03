@@ -71,6 +71,12 @@ export function openInviteList() {
   });
 }
 
+export function openNotiList() {
+  appDispatcher.dispatch({
+    type: cons.actions.navigation.OPEN_NOTI_LIST,
+  });
+}
+
 export function openPublicRooms(searchTerm) {
   appDispatcher.dispatch({
     type: cons.actions.navigation.OPEN_PUBLIC_ROOMS,

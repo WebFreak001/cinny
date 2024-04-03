@@ -19,10 +19,7 @@ const cons = {
     'm.room.member',
     'm.sticker',
   ],
-  supportReceiptTypes: [
-    'm.read',
-    'm.read.private',
-  ],
+  supportReceiptTypes: ['m.read', 'm.read.private'],
   notifs: {
     DEFAULT: 'default',
     ALL_MESSAGES: 'all_messages',
@@ -46,6 +43,7 @@ const cons = {
       TOGGLE_ROOM_SETTINGS: 'TOGGLE_ROOM_SETTINGS',
       OPEN_SHORTCUT_SPACES: 'OPEN_SHORTCUT_SPACES',
       OPEN_INVITE_LIST: 'OPEN_INVITE_LIST',
+      OPEN_NOTI_LIST: 'OPEN_NOTI_LIST',
       OPEN_PUBLIC_ROOMS: 'OPEN_PUBLIC_ROOMS',
       OPEN_CREATE_ROOM: 'OPEN_CREATE_ROOM',
       OPEN_JOIN_ALIAS: 'OPEN_JOIN_ALIAS',
@@ -95,6 +93,7 @@ const cons = {
       ROOM_SETTINGS_TOGGLED: 'ROOM_SETTINGS_TOGGLED',
       SHORTCUT_SPACES_OPENED: 'SHORTCUT_SPACES_OPENED',
       INVITE_LIST_OPENED: 'INVITE_LIST_OPENED',
+      NOTI_LIST_OPENED: 'NOTI_LIST_OPENED',
       PUBLIC_ROOMS_OPENED: 'PUBLIC_ROOMS_OPENED',
       CREATE_ROOM_OPENED: 'CREATE_ROOM_OPENED',
       JOIN_ALIAS_OPENED: 'JOIN_ALIAS_OPENED',

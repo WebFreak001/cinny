@@ -9,8 +9,13 @@ import initMatrix from '../../../client/initMatrix';
 import cons from '../../../client/state/cons';
 import colorMXID from '../../../util/colorMXID';
 import {
-  selectTab, openShortcutSpaces, openInviteList,
-  openSearch, openSettings, openReusableContextMenu,
+  selectTab,
+  openShortcutSpaces,
+  openInviteList,
+  openNotiList,
+  openSearch,
+  openSettings,
+  openReusableContextMenu,
 } from '../../../client/action/navigation';
 import { moveSpaceShortcut } from '../../../client/action/accountData';
 import { abbreviateNumber, getEventCords } from '../../../util/common';
@@ -26,6 +31,7 @@ import HomeIC from '../../../../public/res/ic/outlined/home.svg';
 import UserIC from '../../../../public/res/ic/outlined/user.svg';
 import AddPinIC from '../../../../public/res/ic/outlined/add-pin.svg';
 import SearchIC from '../../../../public/res/ic/outlined/search.svg';
+import BellIC from '../../../../public/res/ic/outlined/bell.svg';
 import InviteIC from '../../../../public/res/ic/outlined/invite.svg';
 import ShieldUserIC from '../../../../public/res/ic/outlined/shield-user.svg';
 
@@ -58,10 +64,11 @@ function ProfileAvatarMenu() {
 
   useEffect(() => {
     const user = mx.getUser(mx.getUserId());
-    const setNewProfile = (avatarUrl, displayName) => setProfile({
-      avatarUrl: avatarUrl || null,
-      displayName: displayName || profile.displayName,
-    });
+    const setNewProfile = (avatarUrl, displayName) =>
+      setProfile({
+        avatarUrl: avatarUrl || null,
+        displayName: displayName || profile.displayName,
+      });
     const onAvatarChange = (event, myUser) => {
       setNewProfile(myUser.avatarUrl, myUser.displayName);
     };
@@ -78,14 +85,16 @@ function ProfileAvatarMenu() {
     <SidebarAvatar
       onClick={openSettings}
       tooltip="Settings"
-      avatar={(
+      avatar={
         <Avatar
           text={profile.displayName}
           bgColor={colorMXID(mx.getUserId())}
           size="normal"
-          imageSrc={profile.avatarUrl !== null ? mx.mxcUrlToHttp(profile.avatarUrl, 42, 42, 'crop') : null}
+          imageSrc={
+            profile.avatarUrl !== null ? mx.mxcUrlToHttp(profile.avatarUrl, 42, 42, 'crop') : null
+          }
         />
-      )}
+      }
     />
   );
 }
@@ -151,32 +160,34 @@ function FeaturedTab() {
         active={selectedTab === cons.tabs.HOME}
         onClick={() => selectTab(cons.tabs.HOME)}
         avatar={<Avatar iconSrc={HomeIC} size="normal" />}
-        notificationBadge={homeNoti ? (
-          <NotificationBadge
-            alert={homeNoti?.highlight > 0}
-            content={abbreviateNumber(homeNoti.total) || null}
-          />
-        ) : null}
+        notificationBadge={
+          homeNoti ? (
+            <NotificationBadge
+              alert={homeNoti?.highlight > 0}
+              content={abbreviateNumber(homeNoti.total) || null}
+            />
+          ) : null
+        }
       />
       <SidebarAvatar
         tooltip="People"
         active={selectedTab === cons.tabs.DIRECTS}
         onClick={() => selectTab(cons.tabs.DIRECTS)}
         avatar={<Avatar iconSrc={UserIC} size="normal" />}
-        notificationBadge={dmsNoti ? (
-          <NotificationBadge
-            alert={dmsNoti?.highlight > 0}
-            content={abbreviateNumber(dmsNoti.total) || null}
-          />
-        ) : null}
+        notificationBadge={
+          dmsNoti ? (
+            <NotificationBadge
+              alert={dmsNoti?.highlight > 0}
+              content={abbreviateNumber(dmsNoti.total) || null}
+            />
+          ) : null
+        }
       />
     </>
   );
 }
 
-function DraggableSpaceShortcut({
-  isActive, spaceId, index, moveShortcut, onDrop,
-}) {
+function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop }) {
   const mx = initMatrix.matrixClient;
   const { notifications } = initMatrix;
   const room = mx.getRoom(spaceId);
@@ -185,11 +196,9 @@ function DraggableSpaceShortcut({
 
   const openSpaceOptions = (e, sId) => {
     e.preventDefault();
-    openReusableContextMenu(
-      'right',
-      getEventCords(e, '.sidebar-avatar'),
-      (closeMenu) => <SpaceOptions roomId={sId} afterOptionSelect={closeMenu} />,
-    );
+    openReusableContextMenu('right', getEventCords(e, '.sidebar-avatar'), (closeMenu) => (
+      <SpaceOptions roomId={sId} afterOptionSelect={closeMenu} />
+    ));
   };
 
   const [, drop] = useDrop({
@@ -248,7 +257,7 @@ function DraggableSpaceShortcut({
       tooltip={room.name}
       onClick={() => selectTab(spaceId)}
       onContextMenu={(e) => openSpaceOptions(e, spaceId)}
-      avatar={(
+      avatar={
         <Avatar
           ref={avatarRef}
           text={room.name}
@@ -256,13 +265,15 @@ function DraggableSpaceShortcut({
           size="normal"
           imageSrc={room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop') || null}
         />
-      )}
-      notificationBadge={notifications.hasNoti(spaceId) ? (
-        <NotificationBadge
-          alert={notifications.getHighlightNoti(spaceId) > 0}
-          content={abbreviateNumber(notifications.getTotalNoti(spaceId)) || null}
-        />
-      ) : null}
+      }
+      notificationBadge={
+        notifications.hasNoti(spaceId) ? (
+          <NotificationBadge
+            alert={notifications.getHighlightNoti(spaceId) > 0}
+            content={abbreviateNumber(notifications.getTotalNoti(spaceId)) || null}
+          />
+        ) : null
+      }
     />
   );
 }
@@ -304,27 +315,24 @@ function SpaceShortcut() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      {
-        spaceShortcut.map((shortcut, index) => (
-          <DraggableSpaceShortcut
-            key={shortcut}
-            index={index}
-            spaceId={shortcut}
-            isActive={selectedTab === shortcut}
-            moveShortcut={moveShortcut}
-            onDrop={handleDrop}
-          />
-        ))
-      }
+      {spaceShortcut.map((shortcut, index) => (
+        <DraggableSpaceShortcut
+          key={shortcut}
+          index={index}
+          spaceId={shortcut}
+          isActive={selectedTab === shortcut}
+          moveShortcut={moveShortcut}
+          onDrop={handleDrop}
+        />
+      ))}
     </DndProvider>
   );
 }
 
 function useTotalInvites() {
   const { roomList } = initMatrix;
-  const totalInviteCount = () => roomList.inviteRooms.size
-    + roomList.inviteSpaces.size
-    + roomList.inviteDirects.size;
+  const totalInviteCount = () =>
+    roomList.inviteRooms.size + roomList.inviteSpaces.size + roomList.inviteDirects.size;
   const [totalInvites, updateTotalInvites] = useState(totalInviteCount());
 
   useEffect(() => {
@@ -371,7 +379,12 @@ function SideBar() {
             onClick={() => openSearch()}
             avatar={<Avatar iconSrc={SearchIC} size="normal" />}
           />
-          { totalInvites !== 0 && (
+          <SidebarAvatar
+            tooltip="Notifications"
+            onClick={() => openNotiList()}
+            avatar={<Avatar iconSrc={BellIC} size="normal" />}
+          />
+          {totalInvites !== 0 && (
             <SidebarAvatar
               tooltip="Invites"
               onClick={() => openInviteList()}

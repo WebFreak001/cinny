@@ -559,7 +559,7 @@ export const MessageReportItem = as<
 });
 
 export type MessageProps = {
-  room: Room;
+  room: Room | null;
   mEvent: MatrixEvent;
   collapse: boolean;
   highlight: boolean;
@@ -570,11 +570,11 @@ export type MessageProps = {
   relations?: Relations;
   messageLayout: MessageLayout;
   messageSpacing: MessageSpacing;
-  onUserClick: MouseEventHandler<HTMLButtonElement>;
-  onUsernameClick: MouseEventHandler<HTMLButtonElement>;
-  onReplyClick: MouseEventHandler<HTMLButtonElement>;
+  onUserClick?: MouseEventHandler<HTMLButtonElement>;
+  onUsernameClick?: MouseEventHandler<HTMLButtonElement>;
+  onReplyClick?: MouseEventHandler<HTMLButtonElement>;
   onEditId?: (eventId?: string) => void;
-  onReactionToggle: (targetEventId: string, key: string, shortcode?: string) => void;
+  onReactionToggle?: (targetEventId: string, key: string, shortcode?: string) => void;
   reply?: ReactNode;
   reactions?: ReactNode;
 };
@@ -614,8 +614,10 @@ export const Message = as<'div', MessageProps>(
     const [emojiBoard, setEmojiBoard] = useState(false);
 
     const senderDisplayName =
-      getMemberDisplayName(room, senderId) ?? getMxIdLocalPart(senderId) ?? senderId;
-    const senderAvatarMxc = getMemberAvatarMxc(room, senderId);
+      (room ? getMemberDisplayName(room, senderId) : undefined) ??
+      getMxIdLocalPart(senderId) ??
+      senderId;
+    const senderAvatarMxc = room ? getMemberAvatarMxc(room, senderId) : undefined;
 
     const headerJSX = !collapse && (
       <Box
@@ -682,7 +684,7 @@ export const Message = as<'div', MessageProps>(
     const msgContentJSX = (
       <Box direction="Column" alignSelf="Start" style={{ maxWidth: '100%' }}>
         {reply}
-        {edit && onEditId ? (
+        {edit && room && onEditId ? (
           <MessageEditor
             style={{
               maxWidth: '100%',
@@ -730,7 +732,7 @@ export const Message = as<'div', MessageProps>(
           <div className={css.MessageOptionsBase}>
             <Menu className={css.MessageOptionsBar} variant="SurfaceVariant">
               <Box gap="100">
-                {canSendReaction && (
+                {canSendReaction && onReactionToggle && (
                   <PopOut
                     alignOffset={-65}
                     position="Bottom"
@@ -804,7 +806,7 @@ export const Message = as<'div', MessageProps>(
                       }}
                     >
                       <Menu {...props} ref={ref}>
-                        {canSendReaction && (
+                        {canSendReaction && onReactionToggle && (
                           <MessageQuickReactions
                             onReaction={(key, shortcode) => {
                               onReactionToggle(mEvent.getId()!, key, shortcode);
@@ -835,32 +837,34 @@ export const Message = as<'div', MessageProps>(
                               </Text>
                             </MenuItem>
                           )}
-                          {relations && (
+                          {relations && room && (
                             <MessageAllReactionItem
                               room={room}
                               relations={relations}
                               onClose={closeMenu}
                             />
                           )}
-                          <MenuItem
-                            size="300"
-                            after={<Icon size="100" src={Icons.ReplyArrow} />}
-                            radii="300"
-                            data-event-id={mEvent.getId()}
-                            onClick={(evt: any) => {
-                              onReplyClick(evt);
-                              closeMenu();
-                            }}
-                          >
-                            <Text
-                              className={css.MessageMenuItemText}
-                              as="span"
-                              size="T300"
-                              truncate
+                          {onReplyClick && (
+                            <MenuItem
+                              size="300"
+                              after={<Icon size="100" src={Icons.ReplyArrow} />}
+                              radii="300"
+                              data-event-id={mEvent.getId()}
+                              onClick={(evt: any) => {
+                                onReplyClick(evt);
+                                closeMenu();
+                              }}
                             >
-                              Reply
-                            </Text>
-                          </MenuItem>
+                              <Text
+                                className={css.MessageMenuItemText}
+                                as="span"
+                                size="T300"
+                                truncate
+                              >
+                                Reply
+                              </Text>
+                            </MenuItem>
+                          )}
                           {canEditEvent(mx, mEvent) && onEditId && (
                             <MenuItem
                               size="300"
@@ -882,14 +886,22 @@ export const Message = as<'div', MessageProps>(
                               </Text>
                             </MenuItem>
                           )}
-                          <MessageReadReceiptItem
-                            room={room}
-                            eventId={mEvent.getId() ?? ''}
-                            onClose={closeMenu}
-                          />
-                          <MessageSourceCodeItem room={room} mEvent={mEvent} onClose={closeMenu} />
+                          {room && (
+                            <MessageReadReceiptItem
+                              room={room}
+                              eventId={mEvent.getId() ?? ''}
+                              onClose={closeMenu}
+                            />
+                          )}
+                          {room && (
+                            <MessageSourceCodeItem
+                              room={room}
+                              mEvent={mEvent}
+                              onClose={closeMenu}
+                            />
+                          )}
                         </Box>
-                        {((!mEvent.isRedacted() && canDelete) ||
+                        {((!mEvent.isRedacted() && canDelete && room) ||
                           mEvent.getSender() !== mx.getUserId()) && (
                           <>
                             <Line size="300" />

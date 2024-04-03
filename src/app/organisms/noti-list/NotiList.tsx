@@ -67,8 +67,7 @@ function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose:
       });
   }, [mx]);
 
-  if (!mx)
-    return undefined;
+  if (!mx) return undefined;
 
   return (
     <PopupWindow
@@ -84,15 +83,13 @@ function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose:
 
           const room = mx.getRoom(roomId);
 
-          if (room == null) return <div>a</div>;
-
           const mEvent = noti.mEvent;
 
-          if (mEvent == null) return <div>a</div>;
+          if (mEvent == null) return undefined;
 
-          const { body, formatted_body: customBody } = mEvent.event.content;
+          let { body, formatted_body: customBody } = mEvent.event.content;
 
-          if (typeof body !== 'string') return <div>a</div>;
+          if (typeof body !== 'string') body = '';
 
           const trimmedBody = trimReplyFromBody(body);
 
@@ -105,6 +102,10 @@ function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose:
                 onRequestClose();
               }}
               key={noti.event.event_id}
+              collapse={false}
+              highlight={false}
+              messageLayout={0}
+              messageSpacing="100"
             >
               <MessageTextBody preWrap={typeof customBody !== 'string'}>
                 {renderBody(trimmedBody, typeof customBody === 'string' ? customBody : undefined)}

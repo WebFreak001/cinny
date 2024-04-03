@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MatrixEvent } from 'matrix-js-sdk';
 import PropTypes from 'prop-types';
 
@@ -26,6 +26,7 @@ import IconButton from '../../atoms/button/IconButton';
 import PopupWindow from '../../molecules/popup-window/PopupWindow';
 
 import CrossIC from '../../../../public/res/ic/outlined/cross.svg';
+import cons from '../../../client/state/cons';
 
 const renderBody = (body: string, customBody: string | undefined) => {
   if (body === '') <MessageEmptyContent />;
@@ -36,11 +37,24 @@ const renderBody = (body: string, customBody: string | undefined) => {
   return emojifyAndLinkify(body, true);
 };
 
-function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose: (...args: any[]) => any }) {
+export function useNotifications() {
   const [notis, setNotis] = useState<any[]>([]);
   const [nextToken, setNextToken] = useState(null);
+  const [receivedNotifications, setReceivedNotifications] = useState(0);
 
   const mx = initMatrix.matrixClient;
+
+  useEffect(() => {
+    if (!initMatrix.notifications) return;
+    const notifs = initMatrix.notifications;
+    const cb = () => {
+      setReceivedNotifications((n) => n + 1);
+    };
+    notifs.on(cons.events.notifications.NOTI_CHANGED, cb);
+    return () => {
+      notifs.off(cons.events.notifications.NOTI_CHANGED, cb);
+    };
+  }, [initMatrix.notifications]);
 
   useEffect(() => {
     if (!mx) return;
@@ -54,18 +68,44 @@ function NotiList({ isOpen, onRequestClose }: { isOpen: boolean, onRequestClose:
       .then(async (notificationsResponse) => {
         const { notifications, next_token } = notificationsResponse;
 
-        setNotis(notifications);
-
         for (const noti of notifications) {
-          const room = mx.getRoom(noti.room_id);
           noti.mEvent = new MatrixEvent(await mx.fetchRoomEvent(noti.room_id, noti.event.event_id));
-
-          setNotis(notifications);
         }
+
+        setNotis(notifications);
 
         setNextToken(next_token);
       });
-  }, [mx]);
+  }, [mx, receivedNotifications]);
+
+  const rooms = useMemo(() => Array.from(new Set(notis.map((n) => n.room_id))), [notis]);
+  const [sumTotal, sumHighlight] = useMemo(
+    () =>
+      initMatrix.notifications
+        ? rooms.reduce(
+            ([sumTotal, sumHighlight], room) => [
+              sumTotal + initMatrix.notifications!.getTotalNoti(room),
+              sumHighlight + initMatrix.notifications!.getHighlightNoti(room),
+            ],
+            [0, 0]
+          )
+        : [0, 0],
+    [rooms, initMatrix.notifications]
+  );
+
+  return [notis, sumTotal, sumHighlight];
+}
+
+function NotiList({
+  isOpen,
+  onRequestClose,
+}: {
+  isOpen: boolean;
+  onRequestClose: (...args: any[]) => any;
+}) {
+  const mx = initMatrix.matrixClient;
+
+  const [notis] = useNotifications();
 
   if (!mx) return undefined;
 

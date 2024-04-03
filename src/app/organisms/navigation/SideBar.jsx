@@ -39,6 +39,7 @@ import { useSelectedTab } from '../../hooks/useSelectedTab';
 import { useDeviceList } from '../../hooks/useDeviceList';
 
 import { tabText as settingTabText } from '../settings/Settings';
+import { useNotifications } from '../noti-list/NotiList';
 
 function useNotificationUpdate() {
   const { notifications } = initMatrix;
@@ -350,6 +351,7 @@ function useTotalInvites() {
 
 function SideBar() {
   const [totalInvites] = useTotalInvites();
+  const [_, totalNotis, highlightNotis] = useNotifications();
 
   return (
     <div className="sidebar">
@@ -383,6 +385,11 @@ function SideBar() {
             tooltip="Notifications"
             onClick={() => openNotiList()}
             avatar={<Avatar iconSrc={BellIC} size="normal" />}
+            notificationBadge={
+              totalNotis > 0 ? (
+                <NotificationBadge alert={highlightNotis > 0} content={totalNotis} />
+              ) : null
+            }
           />
           {totalInvites !== 0 && (
             <SidebarAvatar

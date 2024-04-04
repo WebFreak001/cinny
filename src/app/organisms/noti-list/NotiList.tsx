@@ -117,7 +117,7 @@ export function useNotifications() {
     [rooms, initMatrix.notifications]
   );
 
-  return { notis, sumTotal, sumHighlight, nextToken, paginate, isLoading };
+  return { notis, sumTotal, sumHighlight, hasMore: nextToken !== null, paginate, isLoading };
 }
 
 function NotiList({
@@ -129,7 +129,7 @@ function NotiList({
 }) {
   const mx = initMatrix.matrixClient;
 
-  const { notis, nextToken, paginate, isLoading } = useNotifications();
+  const { notis, hasMore, paginate, isLoading } = useNotifications();
 
   if (!mx) return undefined;
 
@@ -179,14 +179,11 @@ function NotiList({
         })}
       </div>
       <br />
-      <div className="room-search__more">
-        {nextToken != null && !isLoading &&
-            <Button fill={'None'} onClick={paginate}>Load more</Button>
-        }
-        { isLoading &&
-            <Spinner />
-        }
+      {hasMore &&
+        <div className="room-search__more">
+            { isLoading ? <Spinner /> : <Button fill={'None'} onClick={paginate}>Load more</Button> }
       </div>
+      }
     </PopupWindow>
   );
 }

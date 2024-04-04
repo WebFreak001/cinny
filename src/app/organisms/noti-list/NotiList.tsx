@@ -64,11 +64,18 @@ export function useNotifications() {
 
     const { notifications, next_token } = notificationsResponse;
 
-    for (const noti of notifications) {
-        if (notis.find(x => x.event.event_id == noti.event.event_id) != null) continue;
+    setNotis(notis => {
+        const newNotis = [...notis];
 
-        setNotis(notis => [...notis, noti].sort((a, b) => b.ts - a.ts));
-    }
+        for (const noti of notifications) {
+            if (notis.find(x => x.event.event_id == noti.event.event_id) != null)
+                continue;
+
+            newNotis.push(noti);
+        }
+
+        return newNotis.sort((a, b) => b.ts - a.ts);
+    });
 
     if (nextToken == null || from != null)
         setNextToken(next_token);

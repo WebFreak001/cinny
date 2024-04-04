@@ -171,7 +171,7 @@ function NotiList({
           );
         })}
       </div>
-      <br></br>
+      <br />
       <div className="room-search__more">
         {nextToken != null && !isLoading &&
             <Button fill={'None'} onClick={paginate}>Load more</Button>

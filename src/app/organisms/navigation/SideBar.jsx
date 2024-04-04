@@ -415,7 +415,7 @@ function useTotalInvites() {
 
 function SideBar() {
   const [totalInvites] = useTotalInvites();
-  const [_, totalNotis, highlightNotis] = useNotifications();
+  const { sumTotal: totalNotis, sumHighlight: highlightNotis } = useNotifications();
 
   const featuredRef = useRef(null);
   const spacesRef = useRef(null);

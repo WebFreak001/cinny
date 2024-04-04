@@ -117,7 +117,7 @@ export function useNotifications() {
     [rooms, initMatrix.notifications]
   );
 
-  return [notis, sumTotal, sumHighlight, nextToken, paginate, isLoading];
+  return { notis, sumTotal, sumHighlight, nextToken, paginate, isLoading };
 }
 
 function NotiList({
@@ -129,7 +129,7 @@ function NotiList({
 }) {
   const mx = initMatrix.matrixClient;
 
-  const [notis,,, nextToken, paginate, isLoading] = useNotifications();
+  const { notis, nextToken, paginate, isLoading } = useNotifications();
 
   if (!mx) return undefined;
 

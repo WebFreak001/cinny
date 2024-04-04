@@ -16,7 +16,7 @@ import parse from 'html-react-parser';
 import { sanitizeCustomHtml } from '../../utils/sanitize';
 import { trimReplyFromBody } from '../../utils/room';
 import { Message } from '../room/message';
-import { color } from 'folds';
+import { color, Button, Spinner } from 'folds';
 import {
   MessageTextBody,
   MessageEmptyContent,
@@ -40,9 +40,39 @@ const renderBody = (body: string, customBody: string | undefined) => {
 export function useNotifications() {
   const [notis, setNotis] = useState<any[]>([]);
   const [nextToken, setNextToken] = useState(null);
+  const [isLoading, setLoading] = useState(false);
   const [receivedNotifications, setReceivedNotifications] = useState(0);
 
   const mx = initMatrix.matrixClient;
+
+  const fetchNotifications = async (from?:any, limit = 10) => {
+    if (!mx) return;
+
+    const url = new URL('/_matrix/client/v3/notifications', mx.getHomeserverUrl());
+    const params = new URLSearchParams();
+    
+    params.append('limit', limit.toString());
+    if (from != null) params.append('from', from.toString());
+
+    url.search = params.toString();
+
+    const notificationsResponse = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${mx.getAccessToken()}`,
+      },
+    }).then((res) => res.json());
+
+    const { notifications, next_token } = notificationsResponse;
+
+    for (const noti of notifications) {
+        if (notis.find(x => x.event.event_id == noti.event.event_id) != null) continue;
+
+        setNotis(notis => [...notis, noti].sort((a, b) => b.ts - a.ts));
+    }
+
+    if (nextToken == null || from != null)
+        setNextToken(next_token);
+  }
 
   useEffect(() => {
     if (!initMatrix.notifications) return;
@@ -57,26 +87,13 @@ export function useNotifications() {
   }, [initMatrix.notifications]);
 
   useEffect(() => {
-    if (!mx) return;
-
-    fetch(new URL('/_matrix/client/v3/notifications?limit=10', mx.getHomeserverUrl()), {
-      headers: {
-        Authorization: `Bearer ${mx.getAccessToken()}`,
-      },
-    })
-      .then((res) => res.json())
-      .then(async (notificationsResponse) => {
-        const { notifications, next_token } = notificationsResponse;
-
-        for (const noti of notifications) {
-          noti.mEvent = new MatrixEvent(await mx.fetchRoomEvent(noti.room_id, noti.event.event_id));
-        }
-
-        setNotis(notifications);
-
-        setNextToken(next_token);
-      });
+    fetchNotifications();
   }, [mx, receivedNotifications]);
+
+  const paginate = () => {
+    setLoading(true);
+    fetchNotifications(nextToken, 20).finally(() => { setLoading(false); });
+  };
 
   const rooms = useMemo(() => Array.from(new Set(notis.map((n) => n.room_id))), [notis]);
   const [sumTotal, sumHighlight] = useMemo(
@@ -93,7 +110,7 @@ export function useNotifications() {
     [rooms, initMatrix.notifications]
   );
 
-  return [notis, sumTotal, sumHighlight];
+  return [notis, sumTotal, sumHighlight, nextToken, paginate, isLoading];
 }
 
 function NotiList({
@@ -105,7 +122,7 @@ function NotiList({
 }) {
   const mx = initMatrix.matrixClient;
 
-  const [notis] = useNotifications();
+  const [notis,,, nextToken, paginate, isLoading] = useNotifications();
 
   if (!mx) return undefined;
 
@@ -123,11 +140,11 @@ function NotiList({
 
           const room = mx.getRoom(roomId);
 
-          const mEvent = noti.mEvent;
+          const mEvent = new MatrixEvent(noti.event);
 
           if (mEvent == null) return undefined;
 
-          let { body, formatted_body: customBody } = mEvent.event.content;
+          let { body, formatted_body: customBody } = noti.event.content;
 
           if (typeof body !== 'string') body = '';
 
@@ -153,6 +170,15 @@ function NotiList({
             </Message>
           );
         })}
+      </div>
+      <br></br>
+      <div className="room-search__more">
+        {nextToken != null && !isLoading &&
+            <Button fill={'None'} onClick={paginate}>Load more</Button>
+        }
+        { isLoading &&
+            <Spinner />
+        }
       </div>
     </PopupWindow>
   );
